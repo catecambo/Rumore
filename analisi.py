@@ -41,17 +41,15 @@ df_settimanale.loc[df_settimanale['Quadrimestre'] != 1, 'Adjusted_Year'] = df_se
 
 # Create a new dataframe to store the weeks with the highest number of events for each Quadrimestre of every Year
 df_LVAQuadrimestri = df_settimanale.loc[
-    df_settimanale.groupby(['Adjusted_Year', 'Quadrimestre'])['EVENTI'].idxmax(), ['Adjusted_Year', 'Week_Number',
+    df_settimanale.groupby(['Year', 'Quadrimestre'])['EVENTI'].idxmax(), ['Year', 'Week_Number',
                                                                                    'EVENTI', 'LVA TOT DBA']]
-df_LVAQuadrimestri.columns = ['Year', 'Week', 'EVENTI', 'LVA TOT DBA']
+df_LVAQuadrimestri.columns = ['Year', 'Week_Number', 'EVENTI', 'LVA TOT DBA']
 
 # Medie Annuali
 df_avg_LVA = df_LVAQuadrimestri.groupby('Year')['LVA TOT DBA'].mean().reset_index()
 
 # Merge df_giornaliero with df_LVAQuadrimestri to get the data for the selected weeks
-df_selected_weeks = df_giornaliero.merge(df_LVAQuadrimestri, left_on=['Adjusted_Year', 'Week_Number'],
-                                         right_on=['Year', 'Week'], how='inner')
-df_selected_weeks = df_selected_weeks.drop(['Year_y', 'Week'], axis=1)
+df_selected_weeks = df_giornaliero.merge(df_LVAQuadrimestri, on=['Year', 'Week_Number'], how='inner')
 df_selected_weeks = df_selected_weeks.rename(
     columns={'EVENTI_y': 'Tot Week Events', 'LVA TOT DBA_y': 'WEEK AVG LVA TOT DBA'})
 
@@ -61,7 +59,7 @@ df_LVA_Year = df_selected_weeks.groupby('Adjusted_Year').apply(calculate_total_L
 # Rename the columns
 df_LVA_Year.columns = ['Year', 'Total LVA']
 
-output_file = "dati_rumore_v3.xlsx"
+output_file = "dati_rumore_v4.xlsx"
 with pd.ExcelWriter(output_file) as writer:
     df_giornaliero.to_excel(writer, sheet_name="Giornaliero", index=False)
     df_settimanale.to_excel(writer, sheet_name="Settimanale", index=False)
